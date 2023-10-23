@@ -28,7 +28,9 @@ def download_data(bucket_name: str, blob_filename: str, dst_filename: str) -> bo
         a flag to indicate whether the downloading is successful
 
     """
-    print("\n===== Download video {} from GCS bucket {} to {} ...".format(blob_filename, bucket_name, dst_filename))
+    print(
+        f"\n===== Download video {blob_filename} from GCS bucket {bucket_name} to {dst_filename} ..."
+    )
 
     client = storage.Client.create_anonymous_client()
     bucket = client.bucket(bucket_name)
@@ -58,11 +60,11 @@ def extract_frames_from_video(image_dir: str, filename: str, framerate: int=30) 
     if os.path.exists(image_dir) and os.path.isdir(image_dir):
         shutil.rmtree(image_dir)
 
-    print("\n===== Extract frames from the video {} into {} ...".format(filename, image_dir))
+    print(f"\n===== Extract frames from the video {filename} into {image_dir} ...")
 
     pathlib.Path(image_dir).mkdir(parents=True, exist_ok=True)
-    print('File location: ' + filename)
-    print("If file exist: " + str(path.isfile(filename)))
+    print(f'File location: {filename}')
+    print(f"If file exist: {str(path.isfile(filename))}")
     try:
         (
             ffmpeg.input(filename)
@@ -116,7 +118,7 @@ if __name__ ==  '__main__':
 
     opt = parser.parse_args()
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     ########################################################################
     # Download video
@@ -124,8 +126,7 @@ if __name__ ==  '__main__':
 
     video_filename = join(os.path.dirname(os.path.realpath(__file__)), "cows_dornick.mp4")
 
-    skip_download = os.path.exists(video_filename)
-    if skip_download:
+    if skip_download := os.path.exists(video_filename):
         print("\n===== Skip downloading video")
     else:
         success = download_data(bucket_name='public-europe-west2-c-artifacts',
@@ -146,7 +147,7 @@ if __name__ ==  '__main__':
         if os.listdir(image_dir):
             skip_extract = True
     if skip_extract:
-        print("\n===== Skip extracting frames from video {}".format(video_filename))
+        print(f"\n===== Skip extracting frames from video {video_filename}")
     else:
         success = extract_frames_from_video(image_dir, video_filename, framerate=opt.framerate)
         if not success:

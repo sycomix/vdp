@@ -27,23 +27,22 @@ def parse_instance_segmentation_response(resp: requests.Response) -> Tuple[List[
     """
     if resp.status_code != 200:
         return [], [], [], []
-    else:
-        # Parse JSON into an object with attributes corresponding to dict keys.
-        r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
+    # Parse JSON into an object with attributes corresponding to dict keys.
+    r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
 
-        boxes_ltwh, rles, categories, scores = [], [], [], []
-        for output in r.model_outputs[0].task_outputs:
-            for v in output.instance_segmentation.objects:
-                boxes_ltwh.append((
-                    v.bounding_box.left,
-                    v.bounding_box.top,
-                    v.bounding_box.width,
-                    v.bounding_box.height
-                ))
+    boxes_ltwh, rles, categories, scores = [], [], [], []
+    for output in r.model_outputs[0].task_outputs:
+        for v in output.instance_segmentation.objects:
+            boxes_ltwh.append((
+                v.bounding_box.left,
+                v.bounding_box.top,
+                v.bounding_box.width,
+                v.bounding_box.height
+            ))
     #             rles.append([eval(i) for i in v.rle.split(",")])
-                rles.append(v.rle)
-                categories.append(v.category)
-                scores.append(v.score)
+            rles.append(v.rle)
+            categories.append(v.category)
+            scores.append(v.score)
 
     return boxes_ltwh, rles, categories, scores
 
@@ -62,8 +61,10 @@ def trigger_pipeline(api_gateway_url: str, pipeline_id: str, file: BytesIO, file
         pipeline trigger result
 
     """
-    return requests.post("{}/pipelines/{}/triggerSyncMultipart".format(api_gateway_url, pipeline_id),
-                         files=[("file", (filename, file))])
+    return requests.post(
+        f"{api_gateway_url}/pipelines/{pipeline_id}/triggerSyncMultipart",
+        files=[("file", (filename, file))],
+    )
 
 
 def display_intro_markdown(pipeline_id="stomata"):
@@ -126,7 +127,7 @@ def display_trigger_request_code(pipeline_id, filename):
         curl -X POST '{api_gateway_url}/pipelines/{pipeline_id}/triggerSyncMultipart' \\
         --form 'file=@"{filename}"'
         """
-    with st.expander(f"cURL"):
+    with st.expander("cURL"):
         st.code(request_code, language="bash")
 
 
@@ -230,14 +231,12 @@ if __name__ == "__main__":
             st.dataframe(df.style.highlight_between(
                 subset="score", left=score_thres, right=1.0), use_container_width=True)
 
-            st.caption(
-                "Note: highlight detections with score >= {}".format(score_thres))
+            st.caption(f"Note: highlight detections with score >= {score_thres}")
 
         else:
-            st.error("Trigger pipeline {} inference error: {}".format(
-                pipeline_id, resp.text))
+            st.error(f"Trigger pipeline {pipeline_id} inference error: {resp.text}")
 
     except (ValueError, HTTPError, requests.ConnectionError) as err:
-        st.error("Something wrong with the demo: {}".format(err))
+        st.error(f"Something wrong with the demo: {err}")
 
     display_vdp_markdown()

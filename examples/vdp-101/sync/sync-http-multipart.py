@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     opt = parser.parse_args()
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     # Prepare list of image names to be uploaded as multipart.
     images = [opt.image_file]

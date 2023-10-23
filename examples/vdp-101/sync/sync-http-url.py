@@ -49,14 +49,14 @@ if __name__ == "__main__":
 
     opt = parser.parse_args()
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     # Post HTTP request to the SYNC pipeline
     try:
         resp = trigger_pipeline_url(api_gateway_url, opt.pipeline_id, opt.image_url)
 
     except (ValueError, HTTPError, requests.ConnectionError) as err:
-        print("Something wrong with the demo: {}".format(err))
+        print(f"Something wrong with the demo: {err}")
 
     # Parse results from the SYNC pipeline
     boxes_ltwh, categories, scores = parse_detection_response(resp)
@@ -91,4 +91,4 @@ if __name__ == "__main__":
         plt.show()
 
     except (ValueError, HTTPError, requests.ConnectionError) as err:
-        print("Something wrong with the demo: {}".format(err))
+        print(f"Something wrong with the demo: {err}")

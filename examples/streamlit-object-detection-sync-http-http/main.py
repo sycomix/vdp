@@ -26,23 +26,22 @@ def parse_detection_response(resp: requests.Response) -> Tuple[List[Tuple[float]
     """
     if resp.status_code != 200:
         return [], [], []
-    else:
-        # Parse JSON into an object with attributes corresponding to dict keys.
-        r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
+    # Parse JSON into an object with attributes corresponding to dict keys.
+    r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
 
-        boxes_ltwh = []
-        categories = []
-        scores = []
-        for v in r.model_outputs[0].task_outputs[0].detection.objects:
-            boxes_ltwh.append((
-                v.bounding_box.left,
-                v.bounding_box.top,
-                v.bounding_box.width,
-                v.bounding_box.height))
-            categories.append(v.category)
-            scores.append(v.score)
+    boxes_ltwh = []
+    categories = []
+    scores = []
+    for v in r.model_outputs[0].task_outputs[0].detection.objects:
+        boxes_ltwh.append((
+            v.bounding_box.left,
+            v.bounding_box.top,
+            v.bounding_box.width,
+            v.bounding_box.height))
+        categories.append(v.category)
+        scores.append(v.score)
 
-        return boxes_ltwh, categories, scores
+    return boxes_ltwh, categories, scores
 
 @st.cache_data(max_entries=10)
 def trigger_detection_pipeline(api_gateway_url: str, pipeline_id: str, image_url: str) -> requests.Response:
@@ -67,7 +66,9 @@ def trigger_detection_pipeline(api_gateway_url: str, pipeline_id: str, image_url
         ]
     }
 
-    return requests.post("{}/pipelines/{}/triggerSync".format(api_gateway_url, pipeline_id), json=body)
+    return requests.post(
+        f"{api_gateway_url}/pipelines/{pipeline_id}/triggerSync", json=body
+    )
 
 
 def display_intro_markdown(demo_url="https://demo.instill.tech/yolov4-vs-yolov7"):
@@ -143,7 +144,7 @@ def display_trigger_request_code():
             ]
         }}'
         """
-    with st.expander(f"cURL"):
+    with st.expander("cURL"):
         st.code(request_code, language="bash")
 
 
@@ -160,7 +161,7 @@ if __name__ == "__main__":
     opt = parser.parse_args()
     print(opt)
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     display_intro_markdown(opt.demo_url)
 
@@ -204,7 +205,7 @@ if __name__ == "__main__":
                 img_draw = draw_detection(img, boxes_ltwh, categories, scores)
                 col.image(img_draw, use_column_width=True, caption=cap)
             else:
-                col.error("{} inference error".format(cap))
+                col.error(f"{cap} inference error")
 
         # Show request to trigger the pipeline (full column)
         display_trigger_request_code()
@@ -229,9 +230,8 @@ if __name__ == "__main__":
                         subset='Score', left=detection_thres, right=1.0))
                 else:
                     col.dataframe(df)
-        st.caption(
-            "Highlight detections with score >= {}".format(detection_thres))
+        st.caption(f"Highlight detections with score >= {detection_thres}")
 
     except (ValueError, HTTPError, requests.ConnectionError) as err:
-        st.error("Something wrong with the demo: {}".format(err))
+        st.error(f"Something wrong with the demo: {err}")
         display_vdp_markdown()

@@ -33,7 +33,9 @@ def generate_video_from_frames(image_dir: str, output_filename: str, framerate: 
     if os.path.exists(output_filename):
         os.remove(output_filename)
 
-    print("\n=====Generate video {} from image files in {}...".format(output_filename, image_dir))
+    print(
+        f"\n=====Generate video {output_filename} from image files in {image_dir}..."
+    )
     try:
         (
             ffmpeg
@@ -122,7 +124,9 @@ if __name__ ==  '__main__':
         conn = None
 
         print("#", end="", flush=True)
-        assert len(filenames) == len(data_mapping_indices), "number of files {} not consistent with number of records {}".format(len(filenames), len(data_mapping_indices))
+        assert len(filenames) == len(
+            data_mapping_indices
+        ), f"number of files {len(filenames)} not consistent with number of records {len(data_mapping_indices)}"
 
         # Create output directory
         output_dir = join(os.path.dirname(os.path.realpath(__file__)), "outputs")
@@ -134,7 +138,9 @@ if __name__ ==  '__main__':
                 conn = psycopg2.connect(
                     user=opt.pq_username, password=opt.pq_password, host=opt.pq_host, port=opt.pq_port, database=opt.pq_database)
                 cur = conn.cursor()
-                cur.execute("""SELECT _airbyte_raw_vdp._airbyte_data->'detection'->'objects' AS "objects" from _airbyte_raw_vdp WHERE _airbyte_raw_vdp._airbyte_data->>'index' = '{}'""".format(mapping_index))
+                cur.execute(
+                    f"""SELECT _airbyte_raw_vdp._airbyte_data->'detection'->'objects' AS "objects" from _airbyte_raw_vdp WHERE _airbyte_raw_vdp._airbyte_data->>'index' = '{mapping_index}'"""
+                )
                 row = cur.fetchone()[0]
 
                 boxes_ltwh, categories, scores = parse_detection_from_database(row)

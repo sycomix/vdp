@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from urllib.error import HTTPError
 
 
-def parse_instance_segmentation_response(resp: requests.Response) ->  Tuple[List[Tuple[float]], List[str], List[str], List[float]]:
+def parse_instance_segmentation_response(resp: requests.Response) -> Tuple[List[Tuple[float]], List[str], List[str], List[float]]:
     r""" Parse an Instance Segmentation response in to bounding boxes, RLEs, categories and scores
 
     Args:
@@ -26,22 +26,21 @@ def parse_instance_segmentation_response(resp: requests.Response) ->  Tuple[List
     """
     if resp.status_code != 200:
         return [], [], [], []
-    else:
-        # Parse JSON into an object with attributes corresponding to dict keys.
-        r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
+    # Parse JSON into an object with attributes corresponding to dict keys.
+    r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
 
-        boxes_ltwh, rles, categories, scores = [], [], [], []
-        for output in r.model_outputs[0].task_outputs:
-            for v in output.instance_segmentation.objects:
-                boxes_ltwh.append((
-                    v.bounding_box.left,
-                    v.bounding_box.top,
-                    v.bounding_box.width,
-                    v.bounding_box.height
-                ))
-                rles.append(v.rle)
-                categories.append(v.category)
-                scores.append(v.score)
+    boxes_ltwh, rles, categories, scores = [], [], [], []
+    for output in r.model_outputs[0].task_outputs:
+        for v in output.instance_segmentation.objects:
+            boxes_ltwh.append((
+                v.bounding_box.left,
+                v.bounding_box.top,
+                v.bounding_box.width,
+                v.bounding_box.height
+            ))
+            rles.append(v.rle)
+            categories.append(v.category)
+            scores.append(v.score)
 
     return boxes_ltwh, rles, categories, scores
 
@@ -68,7 +67,9 @@ def trigger_pipeline(api_gateway_url: str, pipeline_id: str, image_url: str) -> 
         ]
     }
 
-    return requests.post("{}/pipelines/{}/triggerSync".format(api_gateway_url, pipeline_id), json=body)
+    return requests.post(
+        f"{api_gateway_url}/pipelines/{pipeline_id}/triggerSync", json=body
+    )
 
 def display_intro_markdown(pipeline_id="inst"):
     r""" Display Markdown about demo introduction
@@ -138,7 +139,7 @@ def display_trigger_request_code(pipeline_id):
             ]
         }}'
         """
-    with st.expander(f"cURL"):
+    with st.expander("cURL"):
         st.code(request_code, language="bash")
 
 if __name__ == "__main__":
@@ -150,7 +151,7 @@ if __name__ == "__main__":
     opt = parser.parse_args()
     print(opt)
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     display_intro_markdown(opt.pipeline_id)
 
@@ -194,8 +195,7 @@ if __name__ == "__main__":
             _, df = utils.generate_instance_prediction_table(categories, scores)
             if len(df):
                 st.dataframe(df.style.highlight_between(subset="score", left=score_thres, right=1.0), use_container_width=True)
-                st.caption(
-                    "Note: highlight instances with score >= {}".format(score_thres))
+                st.caption(f"Note: highlight instances with score >= {score_thres}")
 
             display_trigger_request_code(pipeline_id)
             # Show trigger pipeline response
@@ -203,9 +203,9 @@ if __name__ == "__main__":
                     st.json(resp.json())
 
         else:
-            st.error("Trigger pipeline {} inference error: {}".format(pipeline_id, resp.text))
+            st.error(f"Trigger pipeline {pipeline_id} inference error: {resp.text}")
 
     except (ValueError, HTTPError, requests.ConnectionError) as err:
-        st.error("Something wrong with the demo: {}".format(err))
+        st.error(f"Something wrong with the demo: {err}")
 
     display_vdp_markdown()

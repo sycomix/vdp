@@ -33,7 +33,9 @@ def download_data(bucket_name: str, blob_filename: str, dst_filename: str) -> bo
         a flag to indicate whether the downloading is successful
 
     """
-    print("\n===== Download video {} from GCS bucket {} to {} ...".format(blob_filename, bucket_name, dst_filename))
+    print(
+        f"\n===== Download video {blob_filename} from GCS bucket {bucket_name} to {dst_filename} ..."
+    )
 
     client = storage.Client.create_anonymous_client()
     bucket = client.bucket(bucket_name)
@@ -62,7 +64,7 @@ def extract_frames_from_video(image_dir: str, filename: str, framerate: int=30) 
     if os.path.exists(image_dir) and os.path.isdir(image_dir):
         shutil.rmtree(image_dir)
 
-    print("\n===== Extract frames from the video {} into {} ...".format(filename, image_dir))
+    print(f"\n===== Extract frames from the video {filename} into {image_dir} ...")
 
     pathlib.Path(image_dir).mkdir(parents=True, exist_ok=True)
     try:
@@ -97,7 +99,9 @@ def generate_video_from_frames(image_dir: str, output_filename: str, framerate: 
     if os.path.exists(output_filename):
         os.remove(output_filename)
 
-    print("\n=====Generate video {} from image files in {}...".format(output_filename, image_dir))
+    print(
+        f"\n=====Generate video {output_filename} from image files in {image_dir}..."
+    )
     try:
         (
             ffmpeg
@@ -180,8 +184,7 @@ if __name__ ==  '__main__':
 
     video_filename = join(os.path.dirname(os.path.realpath(__file__)), "cows_dornick.mp4")
 
-    skip_download = os.path.exists(video_filename)
-    if skip_download:
+    if skip_download := os.path.exists(video_filename):
         print("\n===== Skip downloading video")
     else:
         success = download_data(bucket_name='public-europe-west2-c-artifacts',
@@ -201,7 +204,7 @@ if __name__ ==  '__main__':
         if os.listdir(image_dir):
             skip_extract = True
     if skip_extract:
-        print("\n===== Skip extracting frames from video {}".format(video_filename))
+        print(f"\n===== Skip extracting frames from video {video_filename}")
     else:
         success = extract_frames_from_video(image_dir, video_filename, framerate=opt.framerate)
         if not success:
@@ -219,7 +222,9 @@ if __name__ ==  '__main__':
     filenames = [file for files in img_batch for file in files]
     data_mapping_indices = []
 
-    print("\n=====Trigger {} pipeline to process images in '{}'\n".format(opt.pipeline_id, image_dir))
+    print(
+        f"\n=====Trigger {opt.pipeline_id} pipeline to process images in '{image_dir}'\n"
+    )
     for files in tqdm(img_batch):
         resp = requests.post(f'{opt.api_gateway_url}/v1alpha/pipelines/{opt.pipeline_id}/triggerAsyncMultipart',
                         files=[("file", (filename, open(join(image_dir, filename), 'rb'))) for filename in files])
@@ -236,7 +241,9 @@ if __name__ ==  '__main__':
         time.sleep(10)
         conn = None
         print("#", end="", flush=True)
-        assert len(filenames) == len(data_mapping_indices), "number of files {} not consistent with number of records {}".format(len(filenames), len(data_mapping_indices))
+        assert len(filenames) == len(
+            data_mapping_indices
+        ), f"number of files {len(filenames)} not consistent with number of records {len(data_mapping_indices)}"
 
         # Create output directory
         output_dir = join(os.path.dirname(os.path.realpath(__file__)), "outputs")
@@ -248,7 +255,9 @@ if __name__ ==  '__main__':
                 conn = psycopg2.connect(
                     user=opt.pq_username, password=opt.pq_password, host=opt.pq_host, port=opt.pq_port, database=opt.pq_database)
                 cur = conn.cursor()
-                cur.execute("""SELECT _airbyte_raw_vdp._airbyte_data->'detection'->'objects' AS "objects" from _airbyte_raw_vdp WHERE _airbyte_raw_vdp._airbyte_data->>'index' = '{}'""".format(mapping_index))
+                cur.execute(
+                    f"""SELECT _airbyte_raw_vdp._airbyte_data->'detection'->'objects' AS "objects" from _airbyte_raw_vdp WHERE _airbyte_raw_vdp._airbyte_data->>'index' = '{mapping_index}'"""
+                )
                 row = cur.fetchone()[0]
 
                 boxes_ltwh, categories, scores = parse_detection_from_database(row)

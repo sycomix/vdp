@@ -122,23 +122,22 @@ def parse_detection_response(resp: requests.Response) -> Tuple[List[Tuple[float]
     """
     if resp.status_code != 200:
         return [], [], []
-    else:
-        # Parse JSON into an object with attributes corresponding to dict keys.
-        r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
+    # Parse JSON into an object with attributes corresponding to dict keys.
+    r = json.loads(resp.text, object_hook=lambda d: SimpleNamespace(**d))
 
-        boxes_ltwh = []
-        categories = []
-        scores = []
-        for v in r.model_outputs[0].task_outputs[0].detection.objects:
-            boxes_ltwh.append((
-                v.bounding_box.left,
-                v.bounding_box.top,
-                v.bounding_box.width,
-                v.bounding_box.height))
-            categories.append(v.category)
-            scores.append(v.score)
+    boxes_ltwh = []
+    categories = []
+    scores = []
+    for v in r.model_outputs[0].task_outputs[0].detection.objects:
+        boxes_ltwh.append((
+            v.bounding_box.left,
+            v.bounding_box.top,
+            v.bounding_box.width,
+            v.bounding_box.height))
+        categories.append(v.category)
+        scores.append(v.score)
 
-        return boxes_ltwh, categories, scores
+    return boxes_ltwh, categories, scores
 
 def draw_detection(img: cv2.Mat, boxes_ltwh: List[Tuple[float]], categories: List[str], scores: List[float], line_thickness=3) -> cv2.Mat:
     r""" Draw detection results on an image

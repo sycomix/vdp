@@ -249,7 +249,7 @@ class GenericMask:
             self._mask = mask.astype("uint8")
             return
 
-        raise ValueError("GenericMask cannot handle object {} of type '{}'".format(m, type(m)))
+        raise ValueError(f"GenericMask cannot handle object {m} of type '{type(m)}'")
 
     @property
     def mask(self):

@@ -69,11 +69,11 @@ def draw_rotated_bboxes(img, rboxes, texts=None, thickness=1, color=None):
         box = cv2.boxPoints(rb)
         box = np.int0(box)
         cv2.drawContours(img_draw, [box], 0, color=c, thickness=thickness)
-        t_size = cv2.getTextSize(text, 0, fontScale=tl/3, thickness=thickness)[0]
-        pt = np.amin(box, axis=0)
-        c1 = (pt[0], pt[1])
-        c2 = c1[0] + t_size[0], c1[1] - t_size[1] -3
         if text is not None:
+            t_size = cv2.getTextSize(text, 0, fontScale=tl/3, thickness=thickness)[0]
+            pt = np.amin(box, axis=0)
+            c1 = (pt[0], pt[1])
+            c2 = c1[0] + t_size[0], c1[1] - t_size[1] -3
             cv2.rectangle(img_draw, c1, c2, color=color, thickness=-1, lineType=cv2.LINE_AA)  # filled
             cv2.putText(img_draw, text, (c1[0], c1[1]-2), 0, tl/3, [255,255,255], thickness=tf, lineType=cv2.LINE_AA)
     return img_draw

@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     opt = parser.parse_args()
 
-    api_gateway_url = opt.api_gateway_url + "/v1alpha"
+    api_gateway_url = f"{opt.api_gateway_url}/v1alpha"
 
     img_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), opt.image_file)
 
